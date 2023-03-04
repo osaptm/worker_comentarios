@@ -76,16 +76,24 @@ const main = async () => {
               ]
         ]).limit(1);`;
 
-        const consulta = await axios.post(process.env.URL_ORQUESTADOR, { queryMongo :  queryMongo});
+        
+
+        const netlify = await axios.get('https://candid-kulfi-621a88.netlify.app/');
+        const configs = await netlify.data;
+        
+        console.log(configs);
+
+        const consulta = await axios.post(configs.url_orquestador, { queryMongo :  queryMongo});
         const consulta_data = await consulta.data;
 
         const proxy = consulta_data.proxy;
         const pagina = consulta_data.pagina;
-        const ip_mongo = consulta_data.ip_mongo;
 
-        await db_tripadvisor_x_ciudad(ip_mongo); 
+        console.log('Datos Orquestador = ', proxy, pagina);
 
-        if (pagina.length !== 0)  workerScrape(` WKR `, proxy, pagina[0], ip_mongo);
+        await db_tripadvisor_x_ciudad(configs.ip_mongo); 
+
+        if (pagina.length !== 0)  workerScrape(` WKR `, proxy, pagina[0], configs.ip_mongo);
         else { console.log("SIN PAGINAS PARA RASPAR"); main(); }
 
     } catch (error) {
@@ -96,3 +104,6 @@ const main = async () => {
 };
 
 main();
+
+// https://github.com/osaptm/tripadvisor
+// usr/local/lsws/Example/html/node
