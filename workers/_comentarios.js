@@ -145,7 +145,7 @@ async function trae_comentarios(page) {
       await cookies.click();
     }
 
-    await new Promise(r => setTimeout(r, 5000));
+    await new Promise(r => setTimeout(r, 7000));
     
     await page.evaluate(() => {
       return location.href = "#tab-data-qa-reviews-0";
@@ -155,11 +155,13 @@ async function trae_comentarios(page) {
 
     const filtros = await page.$('#tab-data-qa-reviews-0');
     if (filtros) {
-      //console.log("Hay filtros");
+      console.log("Hay filtros");
       const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1) > .RCAPL');     
       const title_filtros = await (await primer_boton.getProperty('textContent')).jsonValue();
-      await primer_boton.click();
       await new Promise(r => setTimeout(r, 1000));
+      console.log("Boton -> "+title_filtros);
+      await primer_boton.click();
+      await new Promise(r => setTimeout(r, 3000));
       
       try {
         await page.waitForSelector(".HyAcm > .WMIKb", { timeout: tiempo_espera });
@@ -178,16 +180,16 @@ async function trae_comentarios(page) {
         const boton4 = await mas_filtros.$('.OKHdJ:nth-of-type(4)');
         await boton4.click();
 
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1500));
 
         const boton5 = await mas_filtros.$('.OKHdJ:nth-of-type(5)');
         await boton5.click();
 
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1500));
 
         const boton_aplicar = await page.$(".HllFM > .zUwOc > div[data-button-type='primary'] > button");
         if (boton_aplicar) {
-          //console.log("Aplicamos filtros");
+          console.log("Aplicamos filtros");
           await boton_aplicar.click();
           await new Promise(r => setTimeout(r, 10000));
           let elemento_pagina = await trae_comentarios(page);
