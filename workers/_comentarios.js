@@ -112,7 +112,7 @@ async function trae_comentarios(page) {
       args: ['--no-sandbox',
         '--disable-setuid-sandbox',
         `--proxy-server=${newProxyUrl}`,         
-        ] //  `--proxy-server=${newProxyUrl}` --> Proxy Sin usar otro paquete npm  `--proxy-server=${newProxyUrl}`,    '--window-size=1920,1080'
+        '--window-size=1920,1080'] //  `--proxy-server=${newProxyUrl}` --> Proxy Sin usar otro paquete npm  `--proxy-server=${newProxyUrl}`,    
     });
     // Una nueva pagina en Navegador
     const page = await browser.newPage();
@@ -124,11 +124,10 @@ async function trae_comentarios(page) {
         request.continue();
       }
     });
-    //await page.setViewport({ width: 1900, height: 1000 });
+    await page.setViewport({ width: 1900, height: 1000 });
     // Accedemos a la pagina
     await page.goto(url, { waitUntil: 'domcontentloaded' });
-
-
+    await new Promise(r => setTimeout(r, 20000));
     //Esoeramos por los comentarios -> si no aparece recargamos la pagina una vez - por si se colgo
     try {
       await page.waitForSelector("#tab-data-qa-reviews-0", { timeout: tiempo_espera });
@@ -145,24 +144,20 @@ async function trae_comentarios(page) {
       await cookies.click();
     }
 
-    await new Promise(r => setTimeout(r, 10000));
+    await new Promise(r => setTimeout(r, 3000));
     
     await page.evaluate(() => {
       return location.href = "#tab-data-qa-reviews-0";
     }); 
 
-    await new Promise(r => setTimeout(r, 5000));
-       
-    await page.evaluate(() => {
-      return location.href = "#tab-data-qa-reviews-0";
-    }); 
+    await new Promise(r => setTimeout(r, 1000));
 
     const filtros = await page.$('#tab-data-qa-reviews-0');
     if (filtros) {
       console.log("Hay filtros");
-      const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1)');     
+      const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1) > div');     
       const title_filtros = await (await primer_boton.getProperty('textContent')).jsonValue();
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise(r => setTimeout(r, 1000));
       console.log("Boton -> "+title_filtros);
       await primer_boton.click();
       await new Promise(r => setTimeout(r, 5000));
