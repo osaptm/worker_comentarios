@@ -165,6 +165,8 @@ async function trae_comentarios(page) {
         await page.waitForSelector(".HyAcm > .WMIKb", { timeout: tiempo_espera });
       } catch (error) {
         console.log(title_filtros + `-----> ERROR CLICK FILTROS - ${workerData.url}`) 
+        await page.close();
+        await browser.close();
         throw (`-----> ERROR CLICK FILTROS - ${workerData.url}`)      
       }
 
@@ -198,14 +200,23 @@ async function trae_comentarios(page) {
 
         }else{
           console.log(`-----> SIN APLICAR FILTROS - ${workerData.url}`)
+          await page.close();
+          await browser.close();
+          throw (`-----> SIN APLICAR FILTROS - ${workerData.url}`) 
         }
 
       }else{
         console.log(title_filtros + `-----> SIN MAS FILTROS - ${workerData.url}`)
+        await page.close();
+        await browser.close();
+        throw (`-----> SIN MAS FILTROS - ${workerData.url}`) 
       }
 
     }else{
       console.log(`-----> SIN BOTON FILTROS - ${workerData.url}`)
+        await page.close();
+        await browser.close();
+        throw (`-----> SIN BOTON FILTROS - ${workerData.url}`) 
     }
 
     console.log(`${workerData?.contador_trabajos} -> ${workerData.ip_proxy} ${workerData.nameWorker} - ${workerData.url}`);
