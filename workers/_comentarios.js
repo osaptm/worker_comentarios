@@ -112,7 +112,7 @@ async function trae_comentarios(page) {
       args: ['--no-sandbox',
         '--disable-setuid-sandbox',
         `--proxy-server=${newProxyUrl}`,         
-        '--window-size=1920,1080'] //  `--proxy-server=${newProxyUrl}` --> Proxy Sin usar otro paquete npm  `--proxy-server=${newProxyUrl}`,   
+        ] //  `--proxy-server=${newProxyUrl}` --> Proxy Sin usar otro paquete npm  `--proxy-server=${newProxyUrl}`,    '--window-size=1920,1080'
     });
     // Una nueva pagina en Navegador
     const page = await browser.newPage();
@@ -124,7 +124,7 @@ async function trae_comentarios(page) {
         request.continue();
       }
     });
-    await page.setViewport({ width: 1900, height: 1000 });
+    //await page.setViewport({ width: 1900, height: 1000 });
     // Accedemos a la pagina
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
@@ -150,13 +150,17 @@ async function trae_comentarios(page) {
     await page.evaluate(() => {
       return location.href = "#tab-data-qa-reviews-0";
     }); 
-   
+
+    await new Promise(r => setTimeout(r, 5000));
        
+    await page.evaluate(() => {
+      return location.href = "#tab-data-qa-reviews-0";
+    }); 
 
     const filtros = await page.$('#tab-data-qa-reviews-0');
     if (filtros) {
       console.log("Hay filtros");
-      const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1) > div > span');     
+      const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1)');     
       const title_filtros = await (await primer_boton.getProperty('textContent')).jsonValue();
       await new Promise(r => setTimeout(r, 2000));
       console.log("Boton -> "+title_filtros);
