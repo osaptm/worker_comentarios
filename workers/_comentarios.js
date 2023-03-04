@@ -126,7 +126,7 @@ async function trae_comentarios(page) {
     });
     await page.setViewport({ width: 1900, height: 1000 });
     // Accedemos a la pagina
-    await page.goto(url, { waitUntil: 'load' });
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
 
 
     //Esoeramos por los comentarios -> si no aparece recargamos la pagina una vez - por si se colgo
@@ -145,7 +145,7 @@ async function trae_comentarios(page) {
       await cookies.click();
     }
 
-    await new Promise(r => setTimeout(r, 7000));
+    await new Promise(r => setTimeout(r, 10000));
     
     await page.evaluate(() => {
       return location.href = "#tab-data-qa-reviews-0";
@@ -158,25 +158,35 @@ async function trae_comentarios(page) {
       console.log("Hay filtros");
       const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1) > .RCAPL');     
       const title_filtros = await (await primer_boton.getProperty('textContent')).jsonValue();
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 2000));
       console.log("Boton -> "+title_filtros);
       await primer_boton.click();
-      await new Promise(r => setTimeout(r, 3000));
+      await new Promise(r => setTimeout(r, 5000));
       
       try {
         await page.waitForSelector(".HyAcm > .WMIKb", { timeout: tiempo_espera });
       } catch (error) {
-        console.log(title_filtros + `-----> ERROR CLICK FILTROS - ${workerData.url}`) 
-        await page.close();
-        await browser.close();
-        throw (`-----> ERROR CLICK FILTROS - ${workerData.url}`)      
+
+        try {
+          if(title_filtros.trim() === 'Filtros'){
+            console.log(title_filtros + `Intentamos nuevo click en Filtros`) 
+            await primer_boton.click();
+            await new Promise(r => setTimeout(r, 2500));
+            await page.waitForSelector(".HyAcm > .WMIKb", { timeout: tiempo_espera });
+          }
+        } catch (error) {
+          console.log(title_filtros + `-----> ERROR CLICK FILTROS - ${workerData.url}`) 
+          await page.close();
+          await browser.close();
+          throw (`-----> ERROR CLICK FILTROS - ${workerData.url}`) 
+        }
       }
 
       const modal_filtros = await page.$('.HyAcm > .WMIKb');      
       const mas_filtros = await modal_filtros.$('.YmElR > .qgcDG');           
 
       if (mas_filtros) {
-        //console.log("Hay mas filtros");
+        console.log("Hay mas filtros");
         const boton4 = await mas_filtros.$('.OKHdJ:nth-of-type(4)');
         await boton4.click();
 
