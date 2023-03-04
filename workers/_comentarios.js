@@ -156,7 +156,7 @@ async function trae_comentarios(page) {
     const filtros = await page.$('#tab-data-qa-reviews-0');
     if (filtros) {
       console.log("Hay filtros");
-      const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1) > .RCAPL');     
+      const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1) > div > span');     
       const title_filtros = await (await primer_boton.getProperty('textContent')).jsonValue();
       await new Promise(r => setTimeout(r, 2000));
       console.log("Boton -> "+title_filtros);
@@ -169,7 +169,7 @@ async function trae_comentarios(page) {
 
         try {
           if(title_filtros.trim() === 'Filtros'){
-            console.log(title_filtros + `Intentamos nuevo click en Filtros`) 
+            console.log(`Intentamos nuevo click en Filtros`) 
             await primer_boton.click();
             await new Promise(r => setTimeout(r, 2500));
             await page.waitForSelector(".HyAcm > .WMIKb", { timeout: tiempo_espera });
