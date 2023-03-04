@@ -165,7 +165,7 @@ async function trae_comentarios(page) {
         await page.waitForSelector(".HyAcm > .WMIKb", { timeout: tiempo_espera });
       } catch (error) {
         console.log(title_filtros + `-----> ERROR CLICK FILTROS - ${workerData.url}`) 
-        return null;      
+        throw (`-----> ERROR CLICK FILTROS - ${workerData.url}`)      
       }
 
       const modal_filtros = await page.$('.HyAcm > .WMIKb');      
@@ -222,7 +222,6 @@ async function trae_comentarios(page) {
     process.exit();
 
   } catch (error) {
-    await mongo.Atraccion.updateOne({ _id: workerData.idatraccion }, { $set: { estado_scrapeo_comentarios: 'PENDING' } });
     console.log("Error en Worker ", error)
     process.exit();
   }

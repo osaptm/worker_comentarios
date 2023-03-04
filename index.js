@@ -83,7 +83,7 @@ const main = async () => {
         
         console.log(configs);
 
-        const consulta = await axios.post(configs.url_orquestador, { queryMongo :  queryMongo});
+        const consulta = await axios.post(configs.url_orquestador, { queryMongo :  queryMongo, coleccion:'Atraccion'});
         const consulta_data = await consulta.data;
 
         const proxy = consulta_data.proxy;
