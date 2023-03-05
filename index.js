@@ -81,20 +81,26 @@ const main = async () => {
         const netlify = await axios.get('https://candid-kulfi-621a88.netlify.app/');
         const configs = await netlify.data;
         
-        console.log(configs);
+        console.log('Datos Netlify = ' , configs.url_orquestador, configs.ip_mongo);
 
         const consulta = await axios.post(configs.url_orquestador, { queryMongo :  queryMongo, coleccion:'Atraccion'});
         const consulta_data = await consulta.data;
 
         const proxy = consulta_data.proxy;
         const pagina = consulta_data.pagina;
+        const error = consulta_data.error;
 
-        console.log('Datos Orquestador = ', proxy, pagina);
+        if(error!==null){
 
-        await db_tripadvisor_x_ciudad(configs.ip_mongo); 
+          console.log('Datos Orquestador = ', proxy, pagina[0].url);
+          await db_tripadvisor_x_ciudad(configs.ip_mongo); 
+  
+          if (pagina.length !== 0)  workerScrape(` WKR `, proxy, pagina[0], configs.ip_mongo);
+          else { console.log("SIN PAGINAS PARA RASPAR"); main(); }
 
-        if (pagina.length !== 0)  workerScrape(` WKR `, proxy, pagina[0], configs.ip_mongo);
-        else { console.log("SIN PAGINAS PARA RASPAR"); main(); }
+        }else{
+          console.log("ERROR DEL ORQUESTADOR " + error); main(); 
+        }
 
     } catch (error) {
         console.log("ERROR INESPERADO "+error);
@@ -105,5 +111,6 @@ const main = async () => {
 
 main();
 
+// https://github.com/osaptm/worker_comentarios
 // https://github.com/osaptm/tripadvisor
 // usr/local/lsws/Example/html/node
