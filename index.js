@@ -10,6 +10,8 @@ async function workerScrape(nameWorker, proxy, page, ip_mongo) {
     try {        
         if (page === null) { main(); return; }      
 
+        await mongo.Comentario.deleteMany({ id_atraccion: page._id });
+
         const myWorker = new Worker('./workers/_comentarios.js',
             {
                 workerData: {
@@ -23,7 +25,8 @@ async function workerScrape(nameWorker, proxy, page, ip_mongo) {
             });
     
         myWorker.on('exit', async (code) => {
-           await main();
+          console.log("FINALIZA WORKER ")
+          await main();
         });
 
     } catch (error) {  
@@ -36,46 +39,57 @@ async function workerScrape(nameWorker, proxy, page, ip_mongo) {
 const main = async () => {
     try {
 
-        let queryMongo = `mongo.Ciudad.aggregate([
-            [
-                { $match: { id_pais: { $ne: ObjectId("63e1bad8b35402737fe7e9af") } } },
-                { $project: { _id: 1 } },
-                {
-                  $lookup: {
-                    from: "categoria_atraccion_ciudads",
-                    localField: "_id",
-                    foreignField: "id_ciudad",
-                    as: "catxciu",
-                  },
-                },
-                { $unwind: { path: "$catxciu"} },
-                { $replaceRoot: { newRoot: { $mergeObjects: ["$$ROOT", "$catxciu"] } } },
-                {
-                  $lookup: {
-                    from: "atraccion_x_categorias",
-                    localField: "_id",
-                    foreignField:"id_categoria_atraccion_ciudad",
-                    as: "atracciones",
-                  },
-                },
-                { $unwind: { path: "$atracciones" } },
-                { $replaceRoot: { newRoot: { $mergeObjects: ["$$ROOT", "$atracciones"] } } },
-                { $project: { _id: "$id_atraccion" } },
-                {
-                  $lookup: {
-                    from: "atraccions",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "atraccion",
-                  },
-                },
-                {$unwind: {path: "$atraccion"}},
-                {$replaceRoot: {newRoot: {$mergeObjects: ["$$ROOT", "$atraccion"]}}},
-                {$match: {estado_scrapeo_comentarios: "PENDING", $expr: {$gt: [{ $add: ["$opiniones.Excelente","$opiniones.Muy_bueno"]},20]}}},
-                { $project: {_id: 1, url: 1 } }
-              ]
-        ]).limit(1);`;
+        // let queryMongo_ = `mongo.Ciudad.aggregate([
+        //     [
+        //         { $match: { id_pais: { $ne: ObjectId("63e1bad8b35402737fe7e9af") } } },
+        //         { $project: { _id: 1 } },
+        //         {
+        //           $lookup: {
+        //             from: "categoria_atraccion_ciudads",
+        //             localField: "_id",
+        //             foreignField: "id_ciudad",
+        //             as: "catxciu",
+        //           },
+        //         },
+        //         { $unwind: { path: "$catxciu"} },
+        //         { $replaceRoot: { newRoot: { $mergeObjects: ["$$ROOT", "$catxciu"] } } },
+        //         {
+        //           $lookup: {
+        //             from: "atraccion_x_categorias",
+        //             localField: "_id",
+        //             foreignField:"id_categoria_atraccion_ciudad",
+        //             as: "atracciones",
+        //           },
+        //         },
+        //         { $unwind: { path: "$atracciones" } },
+        //         { $replaceRoot: { newRoot: { $mergeObjects: ["$$ROOT", "$atracciones"] } } },
+        //         { $project: { _id: "$id_atraccion" } },
+        //         {
+        //           $lookup: {
+        //             from: "atraccions",
+        //             localField: "_id",
+        //             foreignField: "_id",
+        //             as: "atraccion",
+        //           },
+        //         },
+        //         {$unwind: {path: "$atraccion"}},
+        //         {$replaceRoot: {newRoot: {$mergeObjects: ["$$ROOT", "$atraccion"]}}},
+        //         {$match:{
+        //           $or:[{"estado_scrapeo_comentarios": "XXXX"},{"estado_scrapeo_comentarios": "PENDING"}], 
+        //           $expr: {$gt: [{ $add: ["$opiniones.Excelente","$opiniones.Muy_bueno"]}, 20]}
+        //         }},
+        //         { $project: {_id: 1, url: 1 } }
+        //       ]
+        // ]).limit(1);`;
 
+       
+        let queryMongo = `mongo.Atraccion.aggregate([
+          {$match:{
+            $or:[{"estado_scrapeo_comentarios": "XXXX"},{"estado_scrapeo_comentarios": "PENDING"}], 
+            $expr: {$gt: [{ $add: ["$opiniones.Excelente","$opiniones.Muy_bueno"]}, 15]}
+          }},
+          { $project: {_id: 1, url: 1 } }
+        ]).limit(1);`
         
 
         const netlify = await axios.get('https://candid-kulfi-621a88.netlify.app/');
@@ -90,13 +104,13 @@ const main = async () => {
         const pagina = consulta_data.pagina;
         const error = consulta_data.error;
 
-        if(error!==null){
-
-          console.log('Datos Orquestador = ', proxy, pagina[0].url);
-          await db_tripadvisor_x_ciudad(configs.ip_mongo); 
-  
-          if (pagina.length !== 0)  workerScrape(` WKR `, proxy, pagina[0], configs.ip_mongo);
-          else { console.log("SIN PAGINAS PARA RASPAR"); main(); }
+        if( error === null ){          
+          await db_tripadvisor_x_ciudad(configs.ip_mongo);   
+          //await mongo.Atraccion.updateMany({estado_scrapeo_comentarios:'INWORKER'},{$set:{ estado_scrapeo_comentarios: 'PENDING' }});
+          if (pagina.length !== 0) {
+            console.log('Iniciar Worker = ', proxy, pagina[0]?.url);
+             workerScrape(` WKR `, proxy, pagina[0], configs.ip_mongo);
+          } else { console.log("SIN PAGINAS PARA RASPAR"); main(); }
 
         }else{
           console.log("ERROR DEL ORQUESTADOR " + error); main(); 
