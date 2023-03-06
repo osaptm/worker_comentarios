@@ -10,7 +10,7 @@ const proxyChain = require('proxy-chain');
 
 // ************* Variable requeridas ************* //
 const proxyUrl = 'http://prueba:123@' + workerData.ip_proxy;
-const tiempo_espera = 10000;
+const tiempo_espera = 15000;
 var paginacion_comentarios = 1;
 var comentarios_grabados = 0;
 // ************* Variable requeridas ************* //
@@ -83,14 +83,14 @@ async function procesa_comentarios(array_comentarios, page) {
     const boton_traductor = await comentario.$('.roAGK > span');
     let boton_titulo = 'XXX';
     if (boton_traductor) boton_titulo = await (await boton_traductor.getProperty('textContent')).jsonValue();
-    console.log('TEXTO BOTON TRADUCTOR', boton_titulo);
+    console.log('Boton Traductor = ', boton_titulo);
 
     if (boton_titulo.includes('Google')) {
       console.log("Para Traducir ...")
       await boton_traductor.click();
-      await new Promise(r => setTimeout(r, 1000));    
 
-      try {        
+      try {  
+              
         await page.waitForSelector(".HyAcm > .QFfSR > .WMIKb", { timeout: tiempo_espera });
         console.log("Se abrio el modal traductor")   
 
@@ -126,7 +126,9 @@ async function procesa_comentarios(array_comentarios, page) {
 /*********************************************************************************************************************/
 /*********************************************************************************************************************/
 async function trae_comentarios(page) {
+
   const comentarios = await page.$('#tab-data-qa-reviews-0 > .eSDnY > .LbPSX');
+
   if (comentarios) {
     console.log("Existen Comentarios")
     const array_comentarios = await comentarios.$$("div[data-automation='reviewCard']");
@@ -214,8 +216,6 @@ async function trae_comentarios(page) {
       await cookies.click();
     }
 
-    await new Promise(r => setTimeout(r, 1000));
-
     try {
       await page.waitForSelector("#tab-data-qa-reviews-0", { timeout: tiempo_espera });
     } catch (error) {
@@ -226,8 +226,6 @@ async function trae_comentarios(page) {
     await page.evaluate(() => {
       return location.href = "#tab-data-qa-reviews-0";
     });
-
-    await new Promise(r => setTimeout(r, 1000));
 
     const filtros = await page.$('#tab-data-qa-reviews-0');
 
@@ -251,10 +249,9 @@ async function trae_comentarios(page) {
 
       const primer_boton = await filtros.$('.OKHdJ:nth-of-type(1) > div');
       const title_filtros = await (await primer_boton.getProperty('textContent')).jsonValue();
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise(r => setTimeout(r, 500));
       console.log("Boton -> " + title_filtros);
       await primer_boton.click();
-      await new Promise(r => setTimeout(r, 3000));
 
       try {
         await page.waitForSelector(".HyAcm > .WMIKb", { timeout: tiempo_espera });
@@ -275,6 +272,7 @@ async function trae_comentarios(page) {
         }
 
       }
+
       const modal_filtros = await page.$('.HyAcm > .WMIKb');
       const mas_filtros = await modal_filtros.$('.YmElR > .qgcDG');
 
@@ -283,12 +281,12 @@ async function trae_comentarios(page) {
         const boton4 = await mas_filtros.$('.OKHdJ:nth-of-type(4)');
         await boton4.click();
 
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 250));
 
         const boton5 = await mas_filtros.$('.OKHdJ:nth-of-type(5)');
         await boton5.click();
 
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 250));
 
         const boton_aplicar = await page.$(".HllFM > .zUwOc > div[data-button-type='primary'] > button");
         if (boton_aplicar) {
@@ -297,7 +295,7 @@ async function trae_comentarios(page) {
           await new Promise(r => setTimeout(r, 5000));
           let elemento_pagina = await trae_comentarios(page);
 
-          while (elemento_pagina !== null && comentarios_grabados < 100) {
+          while (elemento_pagina !== null && comentarios_grabados < 50) {
             await elemento_pagina.click();
             await new Promise(r => setTimeout(r, 5000));
             elemento_pagina = await trae_comentarios(page);

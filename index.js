@@ -96,24 +96,30 @@ const main = async () => {
         const configs = await netlify.data;
         
         console.log('Datos Netlify = ' , configs.url_orquestador, configs.ip_mongo);
+        await db_tripadvisor_x_ciudad(configs.ip_mongo);   
+        //await mongo.Atraccion.updateMany({estado_scrapeo_comentarios:'INWORKER'},{$set:{ estado_scrapeo_comentarios: 'PENDING' }});
 
-        const consulta = await axios.post(configs.url_orquestador, { queryMongo :  queryMongo, coleccion:'Atraccion'});
-        const consulta_data = await consulta.data;
+        for (let index = 0; index < 7; index++) {
+          
+              const consulta = await axios.post(configs.url_orquestador, { queryMongo :  queryMongo, coleccion:'Atraccion'});
+              const consulta_data = await consulta.data;
 
-        const proxy = consulta_data.proxy;
-        const pagina = consulta_data.pagina;
-        const error = consulta_data.error;
+              const proxy = consulta_data.proxy;
+              const pagina = consulta_data.pagina;
+              const error = consulta_data.error;
 
-        if( error === null ){          
-          await db_tripadvisor_x_ciudad(configs.ip_mongo);   
-          //await mongo.Atraccion.updateMany({estado_scrapeo_comentarios:'INWORKER'},{$set:{ estado_scrapeo_comentarios: 'PENDING' }});
-          if (pagina.length !== 0) {
-            console.log('Iniciar Worker = ', proxy, pagina[0]?.url);
-             workerScrape(` WKR `, proxy, pagina[0], configs.ip_mongo);
-          } else { console.log("SIN PAGINAS PARA RASPAR"); main(); }
+              if( error === null ){          
+               
+                
+                if (pagina.length !== 0) {
+                  console.log('Iniciar Worker = ', proxy, pagina[0]?.url);
+                  workerScrape(` WKR `, proxy, pagina[0], configs.ip_mongo);
+                } else { console.log("SIN PAGINAS PARA RASPAR"); main(); }
 
-        }else{
-          console.log("ERROR DEL ORQUESTADOR " + error); main(); 
+              }else{
+                console.log("ERROR DEL ORQUESTADOR " + error); main(); 
+              }
+          
         }
 
     } catch (error) {
