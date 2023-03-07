@@ -1,17 +1,41 @@
+const { exec } = require('child_process');
+const os = require("os");
 const axios = require('axios');
 const { Worker, workerData } = require('worker_threads');
 const { db_tripadvisor_x_ciudad } = require('./database/config'); // Base de Datoos Mongo
 const mongo = require('./models/');
 const { ObjectId } = require('mongoose').Types; // Para usar ObjectId y comprar
 require('dotenv').config(); // Variables de entorno
+var contador_workers_finalizados  = 0;
+var numero_workers = 1;
 
-
+function kill_chrome(){
+  if(contador_workers_finalizados === numero_workers){           
+    if (os.platform() === "win32") {
+      console.log("Matamos Chrome en Windows")
+      exec("Taskkill /F /IM chrome.exe", (error, stdout, stderr) => {
+        if (error) {
+          console.error(`exec error matar chrome windows: ${error}`);
+          process.exit(); 
+        }
+        console.log(`Matamos Chrome windows stdout: ${stdout}`);
+        console.log(`Matamos Chrome windows stderr: ${stderr}`);
+        process.exit(); 
+      });     
+    } else {
+        exec('sudo killall -9 chrome && sudo sync && sudo echo 3 > /proc/sys/vm/drop_caches', (err, stdout, stderr) => {
+        if (err) { console.error("Error al Matar Chrome Linux" + err); process.exit(); }
+        console.log("Matamos Chrome Linux OK" + stdout);
+        process.exit();            
+      });
+    }            
+  }
+}
 async function workerScrape(nameWorker, proxy, page, ip_mongo) {
     try {        
         if (page === null) { main(); return; }      
 
         await mongo.Comentario.deleteMany({ id_atraccion: page._id });
-
         const myWorker = new Worker('./workers/_comentarios.js',
             {
                 workerData: {
@@ -26,12 +50,13 @@ async function workerScrape(nameWorker, proxy, page, ip_mongo) {
     
         myWorker.on('exit', async (code) => {
           console.log("FINALIZA WORKER ")
-          await main();
+          contador_workers_finalizados++;
         });
 
     } catch (error) {  
         await mongo.Atraccion.updateOne({ _id: page._id }, { $set: { estado_scrapeo_comentarios: 'INWORKER' } });       
-        console.log("ERROR WORKER "+error)
+        console.log("ERROR WORKER "+error);
+        contador_workers_finalizados++;
     }
 
 }
@@ -96,10 +121,12 @@ const main = async () => {
         const configs = await netlify.data;
         
         console.log('Datos Netlify = ' , configs.url_orquestador, configs.ip_mongo);
-        await db_tripadvisor_x_ciudad(configs.ip_mongo);   
-        //await mongo.Atraccion.updateMany({estado_scrapeo_comentarios:'INWORKER'},{$set:{ estado_scrapeo_comentarios: 'PENDING' }});
+        await db_tripadvisor_x_ciudad(configs.ip_mongo);
 
-        for (let index = 0; index < 7; index++) {
+        // await mongo.Atraccion.updateMany({estado_scrapeo_comentarios:'INWORKER'},{$set:{ estado_scrapeo_comentarios: 'PENDING' }});
+        // await mongo.Atraccion.updateMany({estado_scrapeo_comentarios:'ERROR'},{$set:{ estado_scrapeo_comentarios: 'PENDING' }});
+
+        for (let index = 0; index < numero_workers; index++) {
           
               const consulta = await axios.post(configs.url_orquestador, { queryMongo :  queryMongo, coleccion:'Atraccion'});
               const consulta_data = await consulta.data;
@@ -122,15 +149,17 @@ const main = async () => {
           
         }
 
-    } catch (error) {
-        console.log("ERROR INESPERADO "+error);
-        process.exit();
-    }
+        setInterval(() => kill_chrome() , 5000);
 
+    } catch (error) {
+         console.log("ERROR INESPERADO "+error);
+         setInterval(() => kill_chrome() , 5000);
+    }
 };
 
 main();
-
+// Taskkill /F /IM chrome.exe
+// killall -9 chrome
 // https://github.com/osaptm/worker_comentarios
 // https://github.com/osaptm/tripadvisor
 // usr/local/lsws/Example/html/node

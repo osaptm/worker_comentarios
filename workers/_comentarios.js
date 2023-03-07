@@ -227,6 +227,8 @@ async function trae_comentarios(page) {
       return location.href = "#tab-data-qa-reviews-0";
     });
 
+    await new Promise(r => setTimeout(r, 1000));
+
     const filtros = await page.$('#tab-data-qa-reviews-0');
 
     if (filtros) {
@@ -235,7 +237,7 @@ async function trae_comentarios(page) {
       const boton_idiomas = await filtros.$('.JLKop:nth-of-type(1) > button');
       //const title_idiomas = await (await boton_idiomas.getProperty('textContent')).jsonValue();
       await boton_idiomas.click();
-
+      await new Promise(r => setTimeout(r, 500));
       try {
         await page.waitForSelector(".UbWCE > ul", { timeout: tiempo_espera });
       } catch (error) {
