@@ -62,63 +62,126 @@ async function workerScrape(nameWorker, proxy, page, ip_mongo) {
 }
 
 const main = async () => {
-    try {
-
-        // let queryMongo_ = `mongo.Ciudad.aggregate([
-        //     [
-        //         { $match: { id_pais: { $ne: ObjectId("63e1bad8b35402737fe7e9af") } } },
-        //         { $project: { _id: 1 } },
-        //         {
-        //           $lookup: {
-        //             from: "categoria_atraccion_ciudads",
-        //             localField: "_id",
-        //             foreignField: "id_ciudad",
-        //             as: "catxciu",
-        //           },
-        //         },
-        //         { $unwind: { path: "$catxciu"} },
-        //         { $replaceRoot: { newRoot: { $mergeObjects: ["$$ROOT", "$catxciu"] } } },
-        //         {
-        //           $lookup: {
-        //             from: "atraccion_x_categorias",
-        //             localField: "_id",
-        //             foreignField:"id_categoria_atraccion_ciudad",
-        //             as: "atracciones",
-        //           },
-        //         },
-        //         { $unwind: { path: "$atracciones" } },
-        //         { $replaceRoot: { newRoot: { $mergeObjects: ["$$ROOT", "$atracciones"] } } },
-        //         { $project: { _id: "$id_atraccion" } },
-        //         {
-        //           $lookup: {
-        //             from: "atraccions",
-        //             localField: "_id",
-        //             foreignField: "_id",
-        //             as: "atraccion",
-        //           },
-        //         },
-        //         {$unwind: {path: "$atraccion"}},
-        //         {$replaceRoot: {newRoot: {$mergeObjects: ["$$ROOT", "$atraccion"]}}},
-        //         {$match:{
-        //           $or:[{"estado_scrapeo_comentarios": "XXXX"},{"estado_scrapeo_comentarios": "PENDING"}], 
-        //           $expr: {$gt: [{ $add: ["$opiniones.Excelente","$opiniones.Muy_bueno"]}, 20]}
-        //         }},
-        //         { $project: {_id: 1, url: 1 } }
-        //       ]
-        // ]).limit(1);`;
-
-       
-        let queryMongo = `mongo.Atraccion.aggregate([
-          {$match:{
-            $or:[{"estado_scrapeo_comentarios": "XXXX"},{"estado_scrapeo_comentarios": "PENDING"}], 
-            $expr: {$gt: [{ $add: ["$opiniones.Excelente","$opiniones.Muy_bueno"]}, 15]}
-          }},
-          { $project: {_id: 1, url: 1 } }
-        ]).limit(1);`
+    try {      
+        let queryMongo = `mongo.Ciudad.aggregate([
+          [
+            {
+              $match:{
+                $or:[
+                  {id_pais:ObjectId('643dbb849a201d57c7e0920c')}, // Cuba
+                  {id_pais:ObjectId('643dbbed9a201d57c7e0920d')}, // El salvador
+                  {id_pais:ObjectId('643dbc3c9a201d57c7e0920e')}, // Guatemala
+                  {id_pais:ObjectId('643dbc809a201d57c7e0920f')}, // Haiti
+                  {id_pais:ObjectId('643dbcde9a201d57c7e09210')}, // Honduras
+                  {id_pais:ObjectId('643dbd3c9a201d57c7e09211')}, // Nicaragua   
+                  {id_pais:ObjectId('643e0368dae4c38fdd2fad4e')}, // Puerto Rico
+                  {id_pais:ObjectId('643e039bdae4c38fdd2fad4f')}, // Republica Dominicana                
+              ],
+              }
+            },
+              {
+                $project: {
+                  _id: 1,
+                },
+              },
+              {
+                $lookup: {
+                  from: "categoria_atraccion_ciudads",
+                  localField: "_id",
+                  foreignField: "id_ciudad",
+                  as: "catxciu",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$catxciu",
+                },
+              },
+              {
+                $replaceRoot: {
+                  newRoot: {
+                    $mergeObjects: ["$$ROOT", "$catxciu"],
+                  },
+                },
+              },
+              {
+                $lookup: {
+                  from: "atraccion_x_categorias",
+                  localField: "_id",
+                  foreignField:"id_categoria_atraccion_ciudad",
+                  as: "atracciones",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$atracciones",
+                },
+              },
+              {
+                $replaceRoot: {
+                  newRoot: {
+                    $mergeObjects: ["$$ROOT", "$atracciones"],
+                  },
+                },
+              },
+              {
+                $project:
+                  {
+                    _id: "$id_atraccion",
+                  },
+              },
+              {
+                $lookup: {
+                  from: "atraccions",
+                  localField: "_id",
+                  foreignField: "_id",
+                  as: "atraccion",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$atraccion",
+                },
+              },
+              {
+                $replaceRoot: {
+                  newRoot: {
+                    $mergeObjects: ["$$ROOT", "$atraccion"],
+                  },
+                },
+              },
+              {
+                $match: {
+                  estado_scrapeo_comentarios: {
+                    $eq: "PENDING",
+                  },
+                  $expr: {
+                    $gt: [
+                      {
+                        $add: [
+                          "$opiniones.Excelente",
+                          "$opiniones.Muy_bueno",
+                        ],
+                      },
+                      14,
+                    ],
+                  },
+                },
+              },
+              {
+                $project: {
+                  _id: 1,
+                  url:1
+                },
+              },
+            ]
+      ]).limit(1);`
         
+        
+       const netlify = await axios.get('https://candid-kulfi-621a88.netlify.app/');
+       const configs = await netlify.data;
 
-        const netlify = await axios.get('https://candid-kulfi-621a88.netlify.app/');
-        const configs = await netlify.data;
+       //const configs = {ip_mongo:"127.0.0.1", url_orquestador:"http://127.0.0.1:3000/orquestador/"}
         
         console.log('Datos Netlify = ' , configs.url_orquestador, configs.ip_mongo);
         await db_tripadvisor_x_ciudad(configs.ip_mongo);
@@ -141,10 +204,10 @@ const main = async () => {
                 if (pagina.length !== 0) {
                   console.log('Iniciar Worker = ', proxy, pagina[0]?.url);
                   workerScrape(` WKR `, proxy, pagina[0], configs.ip_mongo);
-                } else { console.log("SIN PAGINAS PARA RASPAR"); main(); }
+                } else { contador_workers_finalizados++; console.log("SIN PAGINAS PARA RASPAR"); kill_chrome() }
 
               }else{
-                console.log("ERROR DEL ORQUESTADOR " + error); main(); 
+                contador_workers_finalizados++; console.log("ERROR DEL ORQUESTADOR " + error); kill_chrome(); 
               }
           
         }
