@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 const OPCIONES_MONGO = "?directConnection=true&authMechanism=DEFAULT&authSource=admin&replicaSet=rs0&w=majority";
-const db_tripadvisor_x_ciudad = async(IP_MONGO) => {
+const db_conexion = async(IP_MONGO) => {
     try {
         mongoose.set('strictQuery', false);          
         mongoose.connect('mongodb://osaptm:123@'+IP_MONGO+':27017/tripadvisor_x_ciudad'+OPCIONES_MONGO, {
@@ -9,11 +9,11 @@ const db_tripadvisor_x_ciudad = async(IP_MONGO) => {
             useUnifiedTopology: true,
         }); 
     } catch (error) {
-        throw new Error('Error init db_tripadvisor_x_ciudad '+ error);
+        throw new Error('Error init db_conexion '+ error);
     }
 }
 
 module.exports = {
-    db_tripadvisor_x_ciudad
+    db_conexion
 }
 

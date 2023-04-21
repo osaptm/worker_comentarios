@@ -1,4 +1,4 @@
-const { db_tripadvisor_x_ciudad } = require('../database/config'); // Base de Datoos Mongo
+const { db_conexion } = require('../database/config'); // Base de Datoos Mongo
 const mongo = require('../models/');
 const { workerData } = require('worker_threads');
 const { ObjectId } = require('mongoose').Types;
@@ -183,7 +183,7 @@ async function trae_comentarios(page) {
 /*********************************************************************************************************************/
 (async () => {
   try {
-    await db_tripadvisor_x_ciudad(workerData.ip_mongo);
+    await db_conexion(workerData.ip_mongo);
     const url = workerData.url;
     const newProxyUrl = await proxyChain.anonymizeProxy(proxyUrl);
     // Abrimos un Navegador Chromiun
