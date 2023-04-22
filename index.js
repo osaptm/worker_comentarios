@@ -7,7 +7,7 @@ const mongo = require('./models/');
 const { ObjectId } = require('mongoose').Types; // Para usar ObjectId y comprar
 require('dotenv').config(); // Variables de entorno
 var contador_workers_finalizados  = 0;
-var numero_workers = 1;
+var numero_workers = 0;
 
 function kill_chrome(){
   if(contador_workers_finalizados === numero_workers){           
@@ -171,23 +171,24 @@ const main = async () => {
         // await mongo.Atraccion.updateMany({estado_scrapeo_comentarios:'INWORKER'},{$set:{ estado_scrapeo_comentarios: 'PENDING' }});
         // await mongo.Atraccion.updateMany({estado_scrapeo_comentarios:'ERROR'},{$set:{ estado_scrapeo_comentarios: 'PENDING' }});
 
-        for (let index = 0; index < numero_workers; index++) {
-          
-              const consulta = await axios.post(configs.url_orquestador, { pideTrabajo :  true});
-              const consulta_data = await consulta.data;
+        const consulta = await axios.post(configs.url_orquestador, { pideTrabajo :  true});
+        const consulta_data = await consulta.data;
+        numero_workers = consulta_data.pagina.length;
+        console.log("Numero de trabajos "+numero_workers);
+        if(numero_workers === 0) process.exit();
 
+       for(const pagina of consulta_data.pagina) {              
               const proxy = consulta_data.proxy;
-              const pagina = consulta_data.pagina;
               const tipoTrabajo = consulta_data.tipoTrabajo;
               const error = consulta_data.error;
 
               if( error === null ){        
-                  if (pagina.length !== 0) {
-                    console.log('Iniciar Worker = ', tipoTrabajo, pagina[0]?.url);                    
-                    if(tipoTrabajo === 'paso_3') workerScrape_paso_3(` WKR `, proxy, pagina[0], configs.ip_mongo);
-                    if(tipoTrabajo === 'paso_5') workerScrape_paso_5(` WKR `, proxy, pagina[0], configs.ip_mongo);
-                    if(tipoTrabajo === 'paso_7') workerScrape_paso_7(` WKR `, proxy, pagina[0], configs.ip_mongo);
-                    if(tipoTrabajo === 'paso_8') workerScrape_paso_8(` WKR `, proxy, pagina[0], configs.ip_mongo);
+                  if (pagina !== '') {
+                    console.log('Iniciar Worker = ', tipoTrabajo, pagina?.url);                    
+                    if(tipoTrabajo === 'paso_3') workerScrape_paso_3(` WKR `, proxy, pagina, configs.ip_mongo);
+                    if(tipoTrabajo === 'paso_5') workerScrape_paso_5(` WKR `, proxy, pagina, configs.ip_mongo);
+                    if(tipoTrabajo === 'paso_7') workerScrape_paso_7(` WKR `, proxy, pagina, configs.ip_mongo);
+                    if(tipoTrabajo === 'paso_8') workerScrape_paso_8(` WKR `, proxy, pagina, configs.ip_mongo);
                   } else { 
                     contador_workers_finalizados++; console.log("SIN PAGINAS PARA RASPAR"); kill_chrome() 
                   }
@@ -200,7 +201,7 @@ const main = async () => {
 
     } catch (error) {
          console.log("ERROR INESPERADO "+error);
-         setInterval(() => kill_chrome() , 5000);
+         process.exit();
     }
 };
 

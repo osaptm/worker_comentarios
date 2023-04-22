@@ -19,7 +19,7 @@ async function mainWorker() {
 
     if(workerData.url.includes('Tourism')){
       console.log(`${workerData.contador_trabajos} ->  ${workerData.nameWorker} - ${firstNumber} - ${url}`);     
-      await mongo.Categoria_atraccion_ciudad.updateOne({ _id: ObjectId(workerData.iddetalle) }, { $set: { estado_scrapeo_nro: 'URL_RARA' } }); 
+      await mongo.Categoria_atraccion_ciudad.updateOne({ _id: new ObjectId(workerData.iddetalle) }, { $set: { estado_scrapeo_nro: 'URL_RARA' } }); 
       process.exit();
     }
 
@@ -41,7 +41,7 @@ async function mainWorker() {
       if(title_ninguna_atraccion.includes('Ninguna atracción') || title_ninguna_atraccion.includes('ninguna atracción') || title_ninguna_atraccion.includes('Prueba otros filtros')){
         console.log(`${workerData.contador_trabajos} ->  ${workerData.nameWorker} - [ 0 ] - ${url}`);
         const fechaActual = new Date();
-     await mongo.Categoria_atraccion_ciudad.updateOne({ _id: ObjectId(workerData.iddetalle) }, 
+     await mongo.Categoria_atraccion_ciudad.updateOne({ _id: new ObjectId(workerData.iddetalle) }, 
      { 
       $set: { 
         numero_atracciones: 0,
@@ -98,7 +98,7 @@ async function mainWorker() {
      else{estado_final='FINALIZADO'; }
 
      const fechaActual = new Date();
-     await mongo.Categoria_atraccion_ciudad.updateOne({ _id: ObjectId(workerData.iddetalle) }, 
+     await mongo.Categoria_atraccion_ciudad.updateOne({ _id: new ObjectId(workerData.iddetalle) }, 
      { 
       $set: { 
         numero_atracciones: firstNumber,
@@ -116,7 +116,7 @@ async function mainWorker() {
 
   } catch (error) {
     const fechaActual = new Date();
-    await mongo.Categoria_atraccion_ciudad.updateOne({ _id: ObjectId(workerData.iddetalle) }, 
+    await mongo.Categoria_atraccion_ciudad.updateOne({ _id: new ObjectId(workerData.iddetalle) }, 
     { 
      $set: { 
        numero_atracciones: 0,

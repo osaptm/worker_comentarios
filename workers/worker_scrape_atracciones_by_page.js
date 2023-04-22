@@ -46,7 +46,7 @@ async function mainWorker() {
 
     await extraeAtractivos(page);
 
-    await mongo.Pagina.updateOne({ _id: ObjectId(workerData.idpage) }, { $set: { estado_scrapeo_page: 'FINALIZADO' } });
+    await mongo.Pagina.updateOne({ _id:  new ObjectId(workerData.idpage) }, { $set: { estado_scrapeo_page: 'FINALIZADO' } });
 
     mongoose.connection.close();
     // Cerrar Pagina - Cerrar Navegador y Terminar Proceso NODEJS
@@ -56,7 +56,7 @@ async function mainWorker() {
 
   } catch (error) {
 
-    await mongo.Pagina.updateOne({ _id: ObjectId(workerData.idpage) }, { $set: { estado_scrapeo_page: 'PENDING' } });
+    await mongo.Pagina.updateOne({ _id: new ObjectId(workerData.idpage) }, { $set: { estado_scrapeo_page: 'PENDING' } });
     console.log('ERROR EN MAIN ' + workerData.ip_proxy, error);
     mongoose.connection.close();
     await page.close();
@@ -108,15 +108,15 @@ async function extraeAtractivos(page) {
           const data = {
             nombre: nombre_final_sin_numeracion(h3Atractivo),
             url: hrefAtractivo,          
-            id_pais: ObjectId(workerData.id_pais),
-            id_ciudad: ObjectId(workerData.id_ciudad),
-            id_categoria: ObjectId(workerData.id_categoria_atraccion)
+            id_pais: new ObjectId(workerData.id_pais),
+            id_ciudad: new ObjectId(workerData.id_ciudad),
+            id_categoria: new ObjectId(workerData.id_categoria_atraccion)
           }
           const document = await mongo.Atraccion.create([data]);
           const _Atraccion_x_categoria = new mongo.Atraccion_x_categoria({
-            id_categoria_atraccion: ObjectId(workerData.id_categoria_atraccion),
+            id_categoria_atraccion: new ObjectId(workerData.id_categoria_atraccion),
             id_atraccion: document[0]._id,
-            id_categoria_atraccion_ciudad: ObjectId(workerData.idrecurso),
+            id_categoria_atraccion_ciudad: new ObjectId(workerData.idrecurso),
             url_padre: workerData.url,            
           });
 
@@ -129,17 +129,17 @@ async function extraeAtractivos(page) {
       } else {
         
         const existe_Atraccion_x_categoria = await mongo.Atraccion_x_categoria.find({ 
-          id_categoria_atraccion: ObjectId(workerData.id_categoria_atraccion), 
+          id_categoria_atraccion: new ObjectId(workerData.id_categoria_atraccion), 
           id_atraccion: objAtraccion._id,
-          id_categoria_atraccion_ciudad: ObjectId(workerData.idrecurso)
+          id_categoria_atraccion_ciudad: new ObjectId(workerData.idrecurso)
         })
 
           if (existe_Atraccion_x_categoria.length === 0) {
 
           const _Atraccion_x_categoria = new mongo.Atraccion_x_categoria({
-            id_categoria_atraccion: ObjectId(workerData.id_categoria_atraccion),
+            id_categoria_atraccion: new ObjectId(workerData.id_categoria_atraccion),
             id_atraccion: objAtraccion._id,
-            id_categoria_atraccion_ciudad: ObjectId(workerData.idrecurso),
+            id_categoria_atraccion_ciudad: new ObjectId(workerData.idrecurso),
             url_padre: workerData.url,
           });
           await _Atraccion_x_categoria.save();   
@@ -150,7 +150,7 @@ async function extraeAtractivos(page) {
                 const objAtraccion_repetido = await mongo.Atraccion_repetida.findOne({ 
                   id_atraccion: objAtraccion._id, 
                   url_padre:workerData.url,  
-                  id_categoria_atraccion_ciudad:ObjectId(workerData.idrecurso) 
+                  id_categoria_atraccion_ciudad: new ObjectId(workerData.idrecurso) 
                 });
 
                 if (objAtraccion_repetido === null) {
@@ -159,7 +159,7 @@ async function extraeAtractivos(page) {
                     url: hrefAtractivo,
                     url_padre: workerData.url,
                     id_atraccion:objAtraccion._id,
-                    id_categoria_atraccion_ciudad: ObjectId(workerData.idrecurso)
+                    id_categoria_atraccion_ciudad: new ObjectId(workerData.idrecurso)
                   }]); 
                 }
 
@@ -174,7 +174,7 @@ async function extraeAtractivos(page) {
 
   } catch (error) {
 
-    await mongo.Pagina.updateOne({ _id: ObjectId(workerData.idpage) }, { $set: { estado_scrapeo_page: 'PENDING' } });
+    await mongo.Pagina.updateOne({ _id: new ObjectId(workerData.idpage) }, { $set: { estado_scrapeo_page: 'PENDING' } });
     console.log('Error en extraeAtractivos '+workerData?.url, error);
     process.exit();
 
