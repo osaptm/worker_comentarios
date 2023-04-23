@@ -11,7 +11,7 @@ const Atraccion_x_categoria = require('./atraccion_x_categoria')
 const Comentario = require('./comentario')
 const Pais_blog = require('./pais_blog')
 const Ciudad_blog = require('./ciudad_blog')
-
+const Atraccion_imagenes = require('./atraccion_imagenes')
 module.exports = {
     Atraccion_repetida,
     Atraccion,
@@ -25,5 +25,6 @@ module.exports = {
     Atraccion_x_categoria,
     Comentario,
     Pais_blog,
-    Ciudad_blog
+    Ciudad_blog,
+    Atraccion_imagenes
 }

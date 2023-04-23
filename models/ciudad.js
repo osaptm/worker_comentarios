@@ -20,6 +20,18 @@ const Ciudad = Schema({
         default:0,
         required: [true, 'Es Obligatorio'],
     },
+    estado_publicar_automatico:{
+        type: Boolean,
+        default:false,       
+    },
+    geo_latitude: {
+        type: String,
+        default: '',
+    },    
+    geo_longitude: {
+        type: String,
+        default: '',
+    },    
     id_pais: { type: Schema.Types.ObjectId, ref: 'Pais' }
 });
 
