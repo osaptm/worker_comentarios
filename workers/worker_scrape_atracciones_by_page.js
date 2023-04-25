@@ -108,9 +108,9 @@ async function extraeAtractivos(page) {
           const data = {
             nombre: nombre_final_sin_numeracion(h3Atractivo),
             url: hrefAtractivo,          
-            id_pais: new ObjectId(workerData.id_pais),
-            id_ciudad: new ObjectId(workerData.id_ciudad),
-            id_categoria: new ObjectId(workerData.id_categoria_atraccion)
+            id_pais: workerData.id_pais,
+            id_ciudad: workerData.id_ciudad,
+            id_categoria: workerData.id_categoria_atraccion
           }
           const document = await mongo.Atraccion.create([data]);
           const _Atraccion_x_categoria = new mongo.Atraccion_x_categoria({
